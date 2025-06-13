@@ -1,0 +1,6 @@
+---
+- name: Install Docker on Raspberry Pi
+  hosts: pis
+  become: yes
+  roles:
+    - geerlingguy.docker

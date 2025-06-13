@@ -1,0 +1,18 @@
+---
+ansible_python_interpreter: /usr/bin/python3
+docker_apt_release_channel: stable
+docker_apt_arch: arm64
+docker_package: "docker-ce"
+docker_package_state: present
+docker_install_compose: true
+docker_install_compose_plugin: true
+
+docker_users:
+  - rob
+
+docker_daemon_options:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: "overlay2"
