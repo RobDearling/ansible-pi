@@ -33,3 +33,5 @@ Thumbs.db
 # Ansible Galaxy
 roles/
 !roles/requirements.yml
+
+.env

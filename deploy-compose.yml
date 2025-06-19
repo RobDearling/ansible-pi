@@ -1,0 +1,83 @@
+---
+- name: Deploy Docker Compose Applications to Raspberry Pi
+  hosts: pis
+  become: yes
+  vars_files:
+    - homelab-config.yml
+  vars:
+    compose_file: "docker-compose.yml"
+
+  tasks:
+    - name: Parse docker-compose.yml to extract services
+      set_fact:
+        compose_content: "{{ lookup('file', compose_file) | from_yaml }}"
+
+    - name: Extract service names from compose file
+      set_fact:
+        compose_services: "{{ compose_content.services.keys() | list }}"
+
+    - name: Display discovered services
+      debug:
+        msg: "Found services in docker-compose.yml: {{ compose_services }}"
+
+    - name: Create home lab directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Create application-specific directories
+      file:
+        path: "{{ app_directory }}/{{ item.name }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop: "{{ applications }}"
+      when: item.name in compose_services
+
+    - name: Copy additional folders to Raspberry Pi
+      copy:
+        src: "{{ folder.local_path }}"
+        dest: "{{ app_directory }}/{{ app.name }}/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop: "{{ applications | selectattr('name', 'in', compose_services) | selectattr('additional_folders', 'defined') | subelements('additional_folders') }}"
+      loop_control:
+        loop_var: app_folder
+      vars:
+        app: "{{ app_folder.0 }}"
+        folder: "{{ app_folder.1 }}"
+
+    - name: Copy docker-compose.yml to Raspberry Pi
+      copy:
+        src: "{{ compose_file }}"
+        dest: "{{ app_directory }}/{{ compose_file }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+      notify: restart docker compose
+
+    - name: Pull Docker images
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_directory }}"
+        state: present
+        pull: always
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Docker Compose services
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_directory }}"
+        state: present
+      become_user: "{{ ansible_user }}"
+
+  handlers:
+    - name: restart docker compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_directory }}"
+        state: present
+        recreate: auto
+      become_user: "{{ ansible_user }}"

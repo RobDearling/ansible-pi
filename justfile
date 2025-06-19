@@ -1,8 +1,9 @@
 default:
     @just --list
 
-install-role:
+install:
     ansible-galaxy install -r requirements.yml
+    ansible-galaxy collection install -r requirements.yml
 
 ping:
     ansible all -m ping
@@ -10,17 +11,20 @@ ping:
 install-docker:
     ansible-playbook docker.yml
 
-check-docker:
-    ansible pis -m shell -a "docker --version && docker compose version"
+deploy-app:
+    ansible-playbook deploy-compose.yml
+
+full-deploy: install
+    ansible-playbook site.yml
 
 clean:
     ansible-galaxy role remove geerlingguy.docker
 
-setup: install-role ping
+setup: install ping
     @echo "✅ Setup complete!"
 
-deploy: install-role ping install-docker check-docker
-    @echo "🎉 Docker deployment completed successfully!"
+deploy: install ping install-docker check-docker deploy-app
+    @echo "🎉 Docker and homelab applications deployment completed successfully!"
 
 info:
     ansible pis -m setup -a "filter=ansible_distribution*,ansible_kernel,ansible_architecture"

@@ -1,0 +1,6 @@
+---
+- name: Complete Raspberry Pi Docker Setup and Application Deployment
+  import_playbook: docker.yml
+
+- name: Deploy Application
+  import_playbook: deploy-compose.yml

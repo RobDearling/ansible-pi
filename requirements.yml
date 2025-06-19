@@ -1,4 +1,8 @@
 ---
+collections:
+  - name: community.docker
+    version: "4.6.1"
+
 roles:
   - name: geerlingguy.docker
     version: "7.4.6"

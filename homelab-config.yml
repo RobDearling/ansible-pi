@@ -1,0 +1,28 @@
+project_name: homelab
+app_directory: "/opt/homelab"
+
+applications:
+  - name: glance
+    additional_folders:
+      - name: config
+        local_path: ./glance/config
+  - name: pihole
+    additional_folders:
+      - name: config
+        local_path: ./pihole/config
+
+copy_patterns:
+  - "*.sh"
+  - "*.conf"
+  - "*.ini"
+  - "*.yaml"
+  - "*.yml"
+  - "*.json"
+
+exclude_patterns:
+  - "docker-compose.yml"
+  - ".env"
+  - "ansible.cfg"
+  - "inventory.yml"
+  - "requirements.yml"
+  - "*.example.yml"
